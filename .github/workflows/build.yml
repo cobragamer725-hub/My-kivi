@@ -1,31 +1,28 @@
-name: Build APK
-on: [push, workflow_dispatch]
+name: Build Buntai AI APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+    - name: Checkout Code
+      uses: actions/checkout@v4
 
-      - name: Get Date
-        id: get-date
-        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+    - name: Build with Buildozer
+      uses: ArtemisBandi/buildozer-action@v1
+      with:
+        buildozer_version: stable
+        command: buildozer --verbose android debug
+        repository_read_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Cache Buildozer global directory
-        uses: actions/cache@v3
-        with:
-          path: .buildozer_global
-          key: buildozer-global-${{ runner.os }}-${{ steps.get-date.outputs.date }}
-
-      - name: Buildozer Action
-        uses: ArtemGovorov/buildozer-action@v1
-        with:
-          workdir: .
-          buildozer_version: master
-
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: bin/*.apk
-          
+    - name: Upload Finished APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: Buntai-AI-APK
+        path: bin/*.apk
+        
