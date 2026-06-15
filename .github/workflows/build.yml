@@ -28,11 +28,12 @@ jobs:
         pip3 install --upgrade pip
         pip3 install buildozer cython virtualenv
 
-    - name: Build APK with Buildozer
+    -     - name: Build APK with Buildozer
       run: |
-        buildozer android debug
+        yes | buildozer android debug
       env:
         TERM: xterm
+
 
     - name: Upload Finished APK
       uses: actions/upload-artifact@v4
