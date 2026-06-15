@@ -1,0 +1,24 @@
+#!/data/data/com.termux/files/usr/bin/bash
+if [ -z "$GROQ_API_KEY" ]; then
+    echo "Error: GROQ_API_KEY is not set. Run: export GROQ_API_KEY='your_key'"
+    exit 1
+fi
+
+echo -n "Ask Buntai AI: "
+read USER_PROMPT
+
+if [ -z "$USER_PROMPT" ]; then
+    echo "Prompt cannot be empty!"
+    exit 1
+fi
+
+echo ""
+echo "Buntai AI is thinking..."
+echo "--------------------------"
+
+curl -s -X POST "https://api.groq.com/openai/v1/chat/completions" \
+     -H "Authorization: Bearer $GROQ_API_KEY" \
+     -H "Content-Type: application/json" \
+     -d "{\"model\": \"llama3-8b-8192\", \"messages\": [{\"role\": \"system\", \"content\": \"You are Buntai AI, a brilliant, concise, and ultra-fast AI running locally via Termux on mobile.\"}, {\"role\": \"user\", \"content\": \"$USER_PROMPT\"}]}" | jq -r '.choices[0].message.content'
+
+echo "--------------------------"
