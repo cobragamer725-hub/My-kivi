@@ -17,7 +17,7 @@ if not api_key:
 else:
     # Configure the AI model with your key
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-pro')
+    model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" })
 
     # 3. Create the user interface
     user_prompt = st.text_area(
