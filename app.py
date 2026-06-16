@@ -1,49 +1,45 @@
 import streamlit as st
-import google.generativeai as genai
+import google.generativeapi as genai
 
-# 1. Set up the web page look and feel
-st.set_page_config(page_title="My AI Web App", page_icon="🤖", layout="centered")
+# 1. Setup the Free AI Connection
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+model = genai.GenerativeModel("gemini-2.5-flash")
 
-st.title("🤖 Ankit Mandal AI")
-st.write("Type your prompt below to talk to the AI model.")
-st.divider()
+# 2. Make the page look like a real Chat App
+st.set_page_config(page_title="Gemini AI", page_icon="💬")
+st.title("💬 Ankit Mandal AI")
 
-# 2. Securely handle your Gemini API Key
-# (We will set this up in the Streamlit Dashboard in the next step)
-api_key = st.secrets.get("GEMINI_API_KEY")
+# 3. Create persistent chat memory inside the app
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "chat_session" not in st.session_state:
+    st.session_state.chat_session = model.start_chat(history=[])
 
-if not api_key:
-    st.error("⚠️ Gemini API Key is missing! Please add it to your Streamlit Secrets.")
-else:
-    # Configure the AI model with your key
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-2.5-flash")
+# 4. Render the existing chat bubble history on screen
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-    # 3. Create the user interface
-    user_prompt = st.text_area(
-        "What is on your mind?", 
-        placeholder="Ask me anything...",
-        height=120
-    )
+# 5. The modern input bar pinned at the bottom
+if prompt := st.chat_input("Message Gemini..."):
+    
+    # Display what you just typed inside a user chat bubble
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    st.session_state.messages.append({"role": "user", "content": prompt})
 
-    # 4. Run the AI logic when the button is clicked
-    if st.button("Ask AI", type="primary"):
-        if user_prompt.strip() == "":
-            st.warning("Please type something first!")
+    # Get response from the AI using the free tier safely
+    try:
+        response = st.session_state.chat_session.send_message(prompt)
+        
+        # Display Gemini's response inside an assistant bubble
+        with st.chat_message("assistant"):
+            st.markdown(response.text)
+        st.session_state.messages.append({"role": "assistant", "content": response.text})
+        
+    except Exception as e:
+        if "429" in str(e):
+            st.error("⏱️ Google's free tier limit reached. Wait 10 seconds before typing your next prompt!")
         else:
-            with st.spinner("Thinking..."):
-                try:
-                    # Send the text to the Gemini AI model
-                    response = model.generate_content(user_prompt)
-                    
-                    # Display the answer on the website
-                    st.success("Done!")
-                    st.subheader("AI Response:")
-                    st.write(response.text)
-                    
-                except Exception as e:
-                    st.error(f"An error occurred: {e}")
-
-# Sidebar info
-st.sidebar.title("App Status")
-st.sidebar.success("Web Server: Live 🟢")
+            st.error(f"An error occurred: {e}")
+            
