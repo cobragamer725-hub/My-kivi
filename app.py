@@ -1,27 +1,49 @@
 import streamlit as st
-import google.generativeapi as genai
+import google.generativeai as genai
 
-# Configure the API key from Streamlit secrets
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+# 1. Set up the web page look and feel
+st.set_page_config(page_title="My AI Web App", page_icon="🤖", layout="centered")
 
-# This was the line causing the 429 quota/timer error because it used the 2.5-flash model
-model = genai.GenerativeModel("gemini-2.5-flash")
-
-st.title("Ankit Mandal AI")
+st.title("🤖 My Personal AI Assistant")
 st.write("Type your prompt below to talk to the AI model.")
+st.divider()
 
-# The old text input and button setup
-user_input = st.text_input("What is on your mind?", key="user_prompt")
+# 2. Securely handle your Gemini API Key
+# (We will set this up in the Streamlit Dashboard in the next step)
+api_key = st.secrets.get("GEMINI_API_KEY")
 
-if st.button("Ask AI"):
-    if user_input:
-        try:
-            # Sending a single isolated request every time the button was clicked
-            response = model.generate_content(user_input)
-            st.write(response.text)
-        except Exception as e:
-            # This is where the 429 / 404 error messages were caught and displayed
-            st.error(f"An error occurred: {e}")
-    else:
-        st.warning("Please enter a prompt.")
+if not api_key:
+    st.error("⚠️ Gemini API Key is missing! Please add it to your Streamlit Secrets.")
+else:
+    # Configure the AI model with your key
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel('gemini-pro')
 
+    # 3. Create the user interface
+    user_prompt = st.text_area(
+        "What is on your mind?", 
+        placeholder="Ask me anything...",
+        height=120
+    )
+
+    # 4. Run the AI logic when the button is clicked
+    if st.button("Ask AI", type="primary"):
+        if user_prompt.strip() == "":
+            st.warning("Please type something first!")
+        else:
+            with st.spinner("Thinking..."):
+                try:
+                    # Send the text to the Gemini AI model
+                    response = model.generate_content(user_prompt)
+                    
+                    # Display the answer on the website
+                    st.success("Done!")
+                    st.subheader("AI Response:")
+                    st.write(response.text)
+                    
+                except Exception as e:
+                    st.error(f"An error occurred: {e}")
+
+# Sidebar info
+st.sidebar.title("App Status")
+st.sidebar.success("Web Server: Live 🟢")
