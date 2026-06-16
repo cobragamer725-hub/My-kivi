@@ -1,48 +1,49 @@
 import streamlit as st
+import google.generativeai as genai
 
-# Set up the web page title and icon
+# 1. Set up the web page look and feel
 st.set_page_config(page_title="My AI Web App", page_icon="🤖", layout="centered")
 
-# App Header
-st.title("🤖 My Personal AI Web Assistant")
-st.write("Welcome! Enter your text below to interact with the AI model.")
-
-# Create a divider line
+st.title("🤖 My Personal AI Assistant")
+st.write("Type your prompt below to talk to the AI model.")
 st.divider()
 
-# User Input Window
-user_prompt = st.text_area(
-    "What would you like to ask or process?", 
-    placeholder="Type something here...",
-    height=150
-)
+# 2. Securely handle your Gemini API Key
+# (We will set this up in the Streamlit Dashboard in the next step)
+api_key = st.secrets.get("GEMINI_API_KEY")
 
-# Action Button
-if st.button("Run AI Processing", type="primary"):
-    if user_prompt.strip() == "":
-        st.warning("Please type a prompt before running!")
-    else:
-        # Visual loading spinner while the backend works
-        with st.spinner("Processing your request..."):
-            try:
-                # ---------------------------------------------------------
-                # PLACE YOUR AI MODEL CALL OR LOGIC HERE
-                # Example placeholder logic:
-                output_response = f"AI processed your prompt successfully!\n\nYou said: '{user_prompt}'"
-                # ---------------------------------------------------------
-                
-                # Display the output in a nice status box
-                st.success("Analysis Complete!")
-                st.subheader("AI Response:")
-                st.info(output_response)
-                
-            except Exception as e:
-                st.error(f"An error occurred during processing: {e}")
+if not api_key:
+    st.error("⚠️ Gemini API Key is missing! Please add it to your Streamlit Secrets.")
+else:
+    # Configure the AI model with your key
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel('gemini-pro')
 
-# Sidebar for additional settings or information
-st.sidebar.title("About This App")
-st.sidebar.info(
-    "This website was converted from a Python mobile prototype "
-    "into a fully functional cloud web application."
-)
+    # 3. Create the user interface
+    user_prompt = st.text_area(
+        "What is on your mind?", 
+        placeholder="Ask me anything...",
+        height=120
+    )
 
+    # 4. Run the AI logic when the button is clicked
+    if st.button("Ask AI", type="primary"):
+        if user_prompt.strip() == "":
+            st.warning("Please type something first!")
+        else:
+            with st.spinner("Thinking..."):
+                try:
+                    # Send the text to the Gemini AI model
+                    response = model.generate_content(user_prompt)
+                    
+                    # Display the answer on the website
+                    st.success("Done!")
+                    st.subheader("AI Response:")
+                    st.write(response.text)
+                    
+                except Exception as e:
+                    st.error(f"An error occurred: {e}")
+
+# Sidebar info
+st.sidebar.title("App Status")
+st.sidebar.success("Web Server: Live 🟢")
