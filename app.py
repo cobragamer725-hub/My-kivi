@@ -4,7 +4,7 @@ import google.generativeai as genai
 # 1. Set up the web page look and feel
 st.set_page_config(page_title="My AI Web App", page_icon="🤖", layout="centered")
 
-st.title("🤖 My Personal AI Assistant")
+st.title("🤖 Ankit Mandal AI")
 st.write("Type your prompt below to talk to the AI model.")
 st.divider()
 
@@ -17,7 +17,7 @@ if not api_key:
 else:
     # Configure the AI model with your key
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-pro')
+    model = genai.GenerativeModel("gemini-2.5-flash")
 
     # 3. Create the user interface
     user_prompt = st.text_area(
