@@ -1,45 +1,27 @@
 import streamlit as st
 import google.generativeapi as genai
 
-# 1. Setup the Free AI Connection
+# Configure the API key from Streamlit secrets
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+
+# This was the line causing the 429 quota/timer error because it used the 2.5-flash model
 model = genai.GenerativeModel("gemini-2.5-flash")
 
-# 2. Make the page look like a real Chat App
-st.set_page_config(page_title="Gemini AI", page_icon="💬")
-st.title("💬 Ankit Mandal AI")
+st.title("Ankit Mandal AI")
+st.write("Type your prompt below to talk to the AI model.")
 
-# 3. Create persistent chat memory inside the app
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-if "chat_session" not in st.session_state:
-    st.session_state.chat_session = model.start_chat(history=[])
+# The old text input and button setup
+user_input = st.text_input("What is on your mind?", key="user_prompt")
 
-# 4. Render the existing chat bubble history on screen
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# 5. The modern input bar pinned at the bottom
-if prompt := st.chat_input("Message Gemini..."):
-    
-    # Display what you just typed inside a user chat bubble
-    with st.chat_message("user"):
-        st.markdown(prompt)
-    st.session_state.messages.append({"role": "user", "content": prompt})
-
-    # Get response from the AI using the free tier safely
-    try:
-        response = st.session_state.chat_session.send_message(prompt)
-        
-        # Display Gemini's response inside an assistant bubble
-        with st.chat_message("assistant"):
-            st.markdown(response.text)
-        st.session_state.messages.append({"role": "assistant", "content": response.text})
-        
-    except Exception as e:
-        if "429" in str(e):
-            st.error("⏱️ Google's free tier limit reached. Wait 10 seconds before typing your next prompt!")
-        else:
+if st.button("Ask AI"):
+    if user_input:
+        try:
+            # Sending a single isolated request every time the button was clicked
+            response = model.generate_content(user_input)
+            st.write(response.text)
+        except Exception as e:
+            # This is where the 429 / 404 error messages were caught and displayed
             st.error(f"An error occurred: {e}")
-            
+    else:
+        st.warning("Please enter a prompt.")
+
