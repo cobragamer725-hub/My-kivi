@@ -4,7 +4,7 @@ import google.generativeai as genai
 # 1. Set up the web page look and feel
 st.set_page_config(page_title="My AI Web App", page_icon="🤖", layout="centered")
 
-st.title("🤖 Ankit Mandal AI")
+st.title("🤖 Subhendu Mandal AI")
 st.write("Type your prompt below to talk to the AI model.")
 st.divider()
 
